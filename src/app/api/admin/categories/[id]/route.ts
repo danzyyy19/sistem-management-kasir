@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-interface RouteParams {
-    params: {
-        id: string
-    }
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const category = await prisma.category.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 _count: {
                     select: { products: true }
@@ -35,13 +33,17 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const body = await req.json()
         const { name } = body
 
         const category = await prisma.category.update({
-            where: { id: params.id },
+            where: { id },
             data: { name },
         })
 
@@ -55,10 +57,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const category = await prisma.category.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 _count: {
                     select: { products: true }
@@ -74,7 +80,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         }
 
         await prisma.category.delete({
-            where: { id: params.id },
+            where: { id },
         })
 
         return NextResponse.json({ success: true })
