@@ -84,7 +84,7 @@ export default function SalesReportPage() {
                                 type="date"
                                 value={filters.startDate}
                                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                                className="w-full px-3 py-2 border rounded-md bg-background text-foreground border-input"
                             />
                         </div>
                         <div>
@@ -93,7 +93,7 @@ export default function SalesReportPage() {
                                 type="date"
                                 value={filters.endDate}
                                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                                className="w-full px-3 py-2 border rounded-md bg-background text-foreground border-input"
                             />
                         </div>
                         <div>
@@ -101,7 +101,7 @@ export default function SalesReportPage() {
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                                className="w-full px-3 py-2 border rounded-md bg-background text-foreground border-input"
                             >
                                 <option value="ALL">Semua Status</option>
                                 <option value="COMPLETED">Completed</option>

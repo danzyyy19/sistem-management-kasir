@@ -107,7 +107,7 @@ export default function AdminUserNewPage() {
                                 required
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                className="flex h-10 w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
                             >
                                 <option value="CASHIER">Cashier</option>
                                 <option value="MANAGER">Manager</option>
