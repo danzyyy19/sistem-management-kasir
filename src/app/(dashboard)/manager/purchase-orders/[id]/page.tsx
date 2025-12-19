@@ -15,12 +15,18 @@ interface PurchaseOrder {
     total: number
     notes: string
     createdAt: string
+    approvedBy?: string
+    approvedAt?: string
     supplier: {
         name: string
         contact: string
         phone: string
     }
     user: {
+        name: string
+        email: string
+    }
+    approver?: {
         name: string
         email: string
     }
@@ -176,6 +182,26 @@ export default function ManagerPurchaseOrderDetailPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {(po.status === 'APPROVED' || po.status === 'RECEIVED') && po.approver && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Informasi Persetujuan</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div>
+                            <div className="text-sm text-muted-foreground">Disetujui oleh</div>
+                            <div className="font-medium">{po.approver.name}</div>
+                        </div>
+                        {po.approvedAt && (
+                            <div>
+                                <div className="text-sm text-muted-foreground">Tanggal Persetujuan</div>
+                                <div className="font-medium">{formatDate(new Date(po.approvedAt))}</div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {po.notes && (
                 <Card>

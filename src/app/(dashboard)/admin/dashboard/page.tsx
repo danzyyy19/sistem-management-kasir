@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icons } from '@/components/icons'
 import { formatCurrency } from '@/lib/utils'
@@ -51,43 +52,49 @@ export default function AdminDashboard() {
             value: stats?.totalProducts || 0,
             icon: Icons.Products,
             color: 'text-blue-600 dark:text-blue-400',
-            bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+            bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+            href: '/admin/products'
         },
         {
             title: 'Stok Rendah',
             value: stats?.lowStockProducts || 0,
             icon: Icons.Inventory,
             color: 'text-orange-600 dark:text-orange-400',
-            bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+            bgColor: 'bg-orange-100 dark:bg-orange-900/30',
+            href: '/admin/products?filter=lowStock' // Smart filter
         },
         {
             title: 'Total Kategori',
             value: stats?.totalCategories || 0,
             icon: Icons.Categories,
             color: 'text-purple-600 dark:text-purple-400',
-            bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+            bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+            href: '/admin/categories'
         },
         {
             title: 'Total Supplier',
             value: stats?.totalSuppliers || 0,
             icon: Icons.Suppliers,
             color: 'text-green-600 dark:text-green-400',
-            bgColor: 'bg-green-100 dark:bg-green-900/20',
+            bgColor: 'bg-green-100 dark:bg-green-900/30',
+            href: '/admin/suppliers'
         },
         {
             title: 'Total Users',
             value: stats?.totalUsers || 0,
             icon: Icons.Users,
             color: 'text-indigo-600 dark:text-indigo-400',
-            bgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
+            bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
+            href: '/admin/users'
         },
         {
             title: 'Pendapatan Hari Ini',
             value: formatCurrency(stats?.todayRevenue || 0),
             icon: Icons.Transactions,
             color: 'text-emerald-600 dark:text-emerald-400',
-            bgColor: 'bg-emerald-100 dark:bg-emerald-900/20',
-            isRevenue: true,
+            bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
+            href: '/admin/reports/sales?filter=today', // Smart filter
+            isRevenue: true
         },
     ]
 
@@ -104,29 +111,28 @@ export default function AdminDashboard() {
                 {statsCards.map((stat, index) => {
                     const Icon = stat.icon
                     return (
-                        <Card
-                            key={index}
-                            className="hover:shadow-lg transition-shadow duration-200"
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    {stat.title}
-                                </CardTitle>
-                                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                    <Icon className={`w-4 h-4 ${stat.color}`} />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className={`text-2xl font-bold ${stat.color}`}>
-                                    {stat.value}
-                                </div>
-                                {stat.title === 'Stok Rendah' && stat.value > 0 && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Perlu restocking segera
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
+                        <Link key={index} href={stat.href}>
+                            <Card className="hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-foreground">
+                                        {stat.title}
+                                    </CardTitle>
+                                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                                        <Icon className={`w-4 h-4 ${stat.color}`} />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className={`text-2xl font-bold ${stat.color}`}>
+                                        {stat.value}
+                                    </div>
+                                    {stat.title === 'Stok Rendah' && typeof stat.value === 'number' && stat.value > 0 && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Perlu restocking segera
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </Link>
                     )
                 })}
             </div>

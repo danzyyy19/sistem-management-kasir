@@ -196,7 +196,11 @@ export default function DashboardLayout({
                                 <Icons.Menu className="w-5 h-5" />
                             </Button>
                             <h1 className="text-lg sm:text-xl font-semibold truncate">
-                                {menus.find(m => m.href === pathname)?.name || 'Dashboard'}
+                                {(() => {
+                                    // Find matching menu by checking if pathname starts with menu href
+                                    const matchedMenu = menus.find(m => pathname.startsWith(m.href))
+                                    return matchedMenu?.name || 'Dashboard'
+                                })()}
                             </h1>
                         </div>
 

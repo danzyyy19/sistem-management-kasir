@@ -1,58 +1,85 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        const searchParams = req.nextUrl.searchParams
+        const startDateParam = searchParams.get('startDate')
+        const endDateParam = searchParams.get('endDate')
+        const statusParam = searchParams.get('status')
+
         const now = new Date()
+
+        // Parse filter dates or use defaults (last 7 days)
+        const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+        const defaultEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+
+        const startDate = startDateParam
+            ? new Date(startDateParam)
+            : defaultStartDate
+
+        const endDate = endDateParam
+            ? new Date(endDateParam)
+            : defaultEndDate
+
+        // Build where clause for transactions
+        const whereClause: any = {
+            createdAt: {
+                gte: startDate,
+                lte: endDate
+            }
+        }
+
+        // Add status filter if specified
+        if (statusParam && statusParam !== 'ALL') {
+            whereClause.status = statusParam
+        }
+
+        // Calculate summary stats (today, week, month) - always unfiltered for context
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         const weekAgo = new Date(today)
         weekAgo.setDate(weekAgo.getDate() - 7)
-
-        // Get today's sales (PENDAPATAN BERSIH = total, bukan paid)
-        const todaySales = await prisma.transaction.aggregate({
-            where: {
-                createdAt: { gte: today }
-            },
-            _sum: { total: true }, // PENDAPATAN BERSIH
-            _count: true
-        })
-
-        // Get this week's sales
-        const weekSales = await prisma.transaction.aggregate({
-            where: {
-                createdAt: { gte: weekAgo }
-            },
-            _sum: { total: true } // PENDAPATAN BERSIH
-        })
-
-        // Get this month's sales
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-        const monthSales = await prisma.transaction.aggregate({
-            where: {
-                createdAt: { gte: monthStart }
-            },
-            _sum: { total: true } // PENDAPATAN BERSIH
-        })
 
-        // Get all transactions count
-        const totalCount = await prisma.transaction.count()
+        const [todaySales, weekSales, monthSales, totalCount] = await Promise.all([
+            prisma.transaction.aggregate({
+                where: {
+                    createdAt: { gte: today },
+                    status: 'COMPLETED'
+                },
+                _sum: { total: true }
+            }),
+            prisma.transaction.aggregate({
+                where: {
+                    createdAt: { gte: weekAgo },
+                    status: 'COMPLETED'
+                },
+                _sum: { total: true }
+            }),
+            prisma.transaction.aggregate({
+                where: {
+                    createdAt: { gte: monthStart },
+                    status: 'COMPLETED'
+                },
+                _sum: { total: true }
+            }),
+            prisma.transaction.count()
+        ])
 
-        // Get daily sales for last 7 days
+        // Get daily breakdown based on filters
         const dailySales = await prisma.transaction.groupBy({
             by: ['createdAt'],
-            where: {
-                createdAt: { gte: weekAgo }
-            },
-            _sum: { total: true }, // PENDAPATAN BERSIH
+            where: whereClause,
+            _sum: { total: true },
             _count: true
         })
 
         // Process daily data
         const dailyData = []
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date(today)
-            date.setDate(date.getDate() - i)
-            const dateStr = date.toISOString().split('T')[0]
+        const currentDate = new Date(startDate)
+
+        while (currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0]
 
             const dayData = dailySales.filter(d =>
                 new Date(d.createdAt).toISOString().split('T')[0] === dateStr
@@ -63,19 +90,26 @@ export async function GET() {
 
             dailyData.push({
                 date: dateStr,
-                total, // PENDAPATAN BERSIH
+                total,
                 count
             })
+
+            currentDate.setDate(currentDate.getDate() + 1)
         }
 
         return NextResponse.json({
             summary: {
-                today: Number(todaySales._sum.total || 0), // PENDAPATAN BERSIH
-                week: Number(weekSales._sum.total || 0), // PENDAPATAN BERSIH
-                month: Number(monthSales._sum.total || 0), // PENDAPATAN BERSIH
+                today: Number(todaySales._sum.total || 0),
+                week: Number(weekSales._sum.total || 0),
+                month: Number(monthSales._sum.total || 0),
                 totalTransactions: totalCount
             },
-            daily: dailyData
+            daily: dailyData,
+            filters: {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                status: statusParam || 'ALL'
+            }
         })
     } catch (error) {
         console.error('Error fetching sales report:', error)

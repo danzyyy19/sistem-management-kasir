@@ -19,6 +19,12 @@ export async function GET(
                         email: true
                     }
                 },
+                approver: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
+                },
                 items: {
                     include: {
                         product: true
@@ -79,8 +85,8 @@ export async function PATCH(
         }
 
         if (action === 'approve') {
-            if (payload.role !== 'ADMIN') {
-                return NextResponse.json({ error: 'Only admin can approve' }, { status: 403 })
+            if (payload.role !== 'ADMIN' && payload.role !== 'MANAGER') {
+                return NextResponse.json({ error: 'Only admin or manager can approve' }, { status: 403 })
             }
 
             if (po.status !== 'PENDING') {
@@ -92,7 +98,11 @@ export async function PATCH(
 
             const updated = await prisma.purchaseOrder.update({
                 where: { id },
-                data: { status: 'APPROVED' }
+                data: {
+                    status: 'APPROVED',
+                    approvedBy: payload.userId,
+                    approvedAt: new Date()
+                }
             })
 
             return NextResponse.json(updated)

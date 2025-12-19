@@ -13,6 +13,7 @@ export default function LoginPage() {
     const router = useRouter()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -95,15 +96,30 @@ export default function LoginPage() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    disabled={isLoading}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        disabled={isLoading}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                        disabled={isLoading}
+                                    >
+                                        {showPassword ? (
+                                            <Icons.EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Icons.Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <Button

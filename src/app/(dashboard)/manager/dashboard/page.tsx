@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icons } from '@/components/icons'
 
@@ -34,22 +35,25 @@ export default function ManagerDashboard() {
             title: 'Total Inventory',
             value: stats.totalInventory,
             icon: Icons.Inventory,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+            color: 'text-blue-600 dark:text-blue-400',
+            bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+            href: '/manager/inventory'
         },
         {
             title: 'Stok Rendah',
             value: stats.lowStockItems,
             icon: Icons.Products,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+            color: 'text-orange-600 dark:text-orange-400',
+            bgColor: 'bg-orange-100 dark:bg-orange-900/30',
+            href: '/manager/inventory?filter=lowStock' // Smart filter
         },
         {
             title: 'PO Pending',
             value: stats.pendingPurchaseOrders,
             icon: Icons.Suppliers,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+            color: 'text-purple-600 dark:text-purple-400',
+            bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+            href: '/manager/purchase-orders?status=PENDING' // Smart filter
         },
     ]
 
@@ -66,17 +70,19 @@ export default function ManagerDashboard() {
                 {statsCards.map((stat, index) => {
                     const Icon = stat.icon
                     return (
-                        <Card key={index} className="hover:shadow-lg transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                    <Icon className={`w-4 h-4 ${stat.color}`} />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                            </CardContent>
-                        </Card>
+                        <Link key={index} href={stat.href}>
+                            <Card className="hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-foreground">{stat.title}</CardTitle>
+                                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                                        <Icon className={`w-4 h-4 ${stat.color}`} />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     )
                 })}
             </div>

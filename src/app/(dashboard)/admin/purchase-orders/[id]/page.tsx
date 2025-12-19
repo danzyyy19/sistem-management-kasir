@@ -55,6 +55,8 @@ export default function AdminPurchaseOrderDetailPage() {
             if (response.ok) {
                 const data = await response.json()
                 setPo(data)
+            } else {
+                toast.error('PO tidak ditemukan')
             }
         } catch (error) {
             console.error('Error:', error)
@@ -221,10 +223,16 @@ export default function AdminPurchaseOrderDetailPage() {
                         )}
 
                         {po.status === 'APPROVED' && (
-                            <Button onClick={() => handleAction('receive')} disabled={actionLoading} className="gap-2">
-                                <Icons.Check className="w-4 h-4" />
-                                Mark as Received (Update Stok)
-                            </Button>
+                            <>
+                                <Button onClick={() => handleAction('receive')} disabled={actionLoading} className="gap-2">
+                                    <Icons.Check className="w-4 h-4" />
+                                    Mark as Received (Update Stok)
+                                </Button>
+                                <Button onClick={() => handleAction('cancel')} disabled={actionLoading} variant="destructive" className="gap-2">
+                                    <Icons.Close className="w-4 h-4" />
+                                    Cancel
+                                </Button>
+                            </>
                         )}
 
                         {po.status === 'RECEIVED' && (
@@ -236,6 +244,24 @@ export default function AdminPurchaseOrderDetailPage() {
                                         <div className="text-sm text-green-700 dark:text-green-300">Stok produk sudah ditambahkan</div>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {po.status === 'CANCELLED' && (
+                            <div className="p-4 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    <Icons.Close className="w-5 h-5 text-red-600" />
+                                    <div>
+                                        <div className="font-medium text-red-900 dark:text-red-100">PO Dibatalkan</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Debug info */}
+                        {!['PENDING', 'APPROVED', 'RECEIVED', 'CANCELLED'].includes(po.status) && (
+                            <div className="text-sm text-muted-foreground">
+                                Status saat ini: {po.status}
                             </div>
                         )}
                     </div>

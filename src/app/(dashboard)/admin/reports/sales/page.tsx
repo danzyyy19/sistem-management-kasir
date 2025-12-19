@@ -24,6 +24,11 @@ export default function SalesReportPage() {
         month: 0,
         totalTransactions: 0,
     })
+    const [filters, setFilters] = useState({
+        startDate: '',
+        endDate: '',
+        status: 'ALL'
+    })
 
     useEffect(() => {
         fetchSalesReport()
@@ -31,7 +36,12 @@ export default function SalesReportPage() {
 
     const fetchSalesReport = async () => {
         try {
-            const response = await fetch('/api/admin/reports/sales')
+            const params = new URLSearchParams()
+            if (filters.startDate) params.append('startDate', filters.startDate)
+            if (filters.endDate) params.append('endDate', filters.endDate)
+            if (filters.status !== 'ALL') params.append('status', filters.status)
+
+            const response = await fetch(`/api/admin/reports/sales?${params.toString()}`)
             if (response.ok) {
                 const data = await response.json()
                 setSalesData(data.daily || [])
@@ -64,6 +74,59 @@ export default function SalesReportPage() {
                     <p className="text-muted-foreground mt-1">Analisis penjualan periode tertentu</p>
                 </div>
             </div>
+
+            <Card>
+                <CardContent className="pt-6">
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Tanggal Mulai</label>
+                            <input
+                                type="date"
+                                value={filters.startDate}
+                                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Tanggal Akhir</label>
+                            <input
+                                type="date"
+                                value={filters.endDate}
+                                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Status</label>
+                            <select
+                                value={filters.status}
+                                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                            >
+                                <option value="ALL">Semua Status</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div className="flex items-end gap-2">
+                            <Button onClick={fetchSalesReport} className="flex-1">
+                                <Icons.Check className="w-4 h-4 mr-2" />
+                                Terapkan
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setFilters({ startDate: '', endDate: '', status: 'ALL' })
+                                    setTimeout(fetchSalesReport, 100)
+                                }}
+                                variant="outline"
+                            >
+                                Reset
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <div className="grid gap-4 md:grid-cols-4">
                 <Card>
