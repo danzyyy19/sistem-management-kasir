@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-interface RouteParams {
-    params: {
-        id: string
-    }
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const product = await prisma.product.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 category: true,
                 supplier: true,
@@ -34,13 +32,17 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const body = await req.json()
         const { name, sku, barcode, price, cost, stock, minStock, categoryId, supplierId } = body
 
         const product = await prisma.product.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 name,
                 sku,
@@ -64,10 +66,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         await prisma.product.delete({
-            where: { id: params.id },
+            where: { id },
         })
 
         return NextResponse.json({ success: true })

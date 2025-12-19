@@ -56,33 +56,41 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 p-4 relative overflow-hidden">
             <Toaster position="top-center" />
 
-            <div className="w-full max-w-md animate-fade-in">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            </div>
+
+            <div className="w-full max-w-md animate-fade-in relative z-10">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
-                        <Icons.ShoppingCart className="w-8 h-8 text-primary-foreground" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl mb-4 shadow-2xl transform hover:scale-110 transition-transform duration-300">
+                        <Icons.ShoppingCart className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gradient mb-2">
-                        Sistem Informasi Minimarket
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                        Minimarket System
                     </h1>
-                    <p className="text-muted-foreground">
-                        Rancangan Basis Data Minimarket
+                    <p className="text-muted-foreground text-sm">
+                        Management & Point of Sale
                     </p>
                 </div>
 
-                <Card className="shadow-xl">
-                    <CardHeader>
-                        <CardTitle>Login</CardTitle>
-                        <CardDescription>
-                            Masukkan email dan password Anda untuk melanjutkan
+                <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
+                    <CardHeader className="space-y-1 pb-4">
+                        <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Sign In
+                        </CardTitle>
+                        <CardDescription className="text-center">
+                            Enter your credentials to access the system
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -91,21 +99,22 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
+                                    className="h-11 border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="••••••"
+                                        placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         disabled={isLoading}
-                                        className="pr-10"
+                                        className="pr-10 h-11 border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                                     />
                                     <button
                                         type="button"
@@ -124,7 +133,7 @@ export default function LoginPage() {
 
                             <Button
                                 type="submit"
-                                className="w-full"
+                                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                                 disabled={isLoading}
                                 size="lg"
                             >
@@ -134,27 +143,21 @@ export default function LoginPage() {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Memproses...
+                                        Signing in...
                                     </span>
                                 ) : (
-                                    'Login'
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Icons.ShoppingCart className="w-5 h-5" />
+                                        Sign In
+                                    </span>
                                 )}
                             </Button>
                         </form>
-
-                        <div className="mt-6 p-4 bg-muted rounded-lg">
-                            <p className="text-sm font-medium mb-2">Default Credentials:</p>
-                            <div className="text-xs space-y-1 text-muted-foreground">
-                                <p><strong>Admin:</strong> admin@minimarket.com / admin123</p>
-                                <p><strong>Manager:</strong> manager@minimarket.com / manager123</p>
-                                <p><strong>Cashier:</strong> cashier@minimarket.com / cashier123</p>
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 
-                <p className="text-center text-sm text-muted-foreground mt-4">
-                    © 2025 Sistem Informasi Minimarket. All rights reserved.
+                <p className="text-center text-xs text-muted-foreground mt-6">
+                    © 2025 Minimarket Management System. All rights reserved.
                 </p>
             </div>
         </div>

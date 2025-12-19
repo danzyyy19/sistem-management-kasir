@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { hashPassword } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
 
-interface RouteParams {
-    params: {
-        id: string
-    }
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const user = await prisma.user.findUnique({
-            where: { id: params.id },
+            where: { id },
             select: {
                 id: true,
-                name: true,
                 email: true,
+                name: true,
                 role: true,
                 createdAt: true,
+                updatedAt: true,
             }
         })
 
@@ -38,31 +37,36 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const body = await req.json()
         const { name, email, role, password } = body
 
-        const updateData: any = {
+        const data: any = {
             name,
             email,
             role,
         }
 
-        // Only update password if provided
         if (password) {
-            updateData.password = await hashPassword(password)
+            const hashedPassword = await bcrypt.hash(password, 10)
+            data.password = hashedPassword
         }
 
         const user = await prisma.user.update({
-            where: { id: params.id },
-            data: updateData,
+            where: { id },
+            data,
             select: {
                 id: true,
-                name: true,
                 email: true,
+                name: true,
                 role: true,
                 createdAt: true,
+                updatedAt: true,
             }
         })
 
@@ -76,10 +80,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         await prisma.user.delete({
-            where: { id: params.id },
+            where: { id },
         })
 
         return NextResponse.json({ success: true })

@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-interface RouteParams {
-    params: {
-        id: string
-    }
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const supplier = await prisma.supplier.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 _count: {
-                    select: { products: true }
+                    select: {
+                        products: true,
+                        purchaseOrders: true,
+                    }
                 }
             }
         })
@@ -35,13 +36,17 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const body = await req.json()
         const { name, contact, phone, address } = body
 
         const supplier = await prisma.supplier.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 name,
                 contact: contact || null,
@@ -60,10 +65,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await context.params
         const supplier = await prisma.supplier.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 _count: {
                     select: { products: true }
@@ -79,7 +88,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         }
 
         await prisma.supplier.delete({
-            where: { id: params.id },
+            where: { id },
         })
 
         return NextResponse.json({ success: true })
