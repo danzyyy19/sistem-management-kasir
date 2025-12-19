@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json()
-        const { items, total, paid, change } = body
+        const { items, total, paid, change, paymentMethod = 'CASH' } = body
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json(
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
                     total: Number(total),
                     paid: Number(paid),
                     change: Number(change),
+                    paymentMethod: paymentMethod,
                 }
             })
 

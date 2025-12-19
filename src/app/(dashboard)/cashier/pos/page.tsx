@@ -6,7 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/icons'
 import { formatCurrency } from '@/lib/utils'
+import { ThermalReceipt } from '@/components/ThermalReceipt'
 import toast from 'react-hot-toast'
+
+type PaymentMethodType = 'CASH' | 'DEBIT_CARD' | 'CREDIT_CARD' | 'E_WALLET'
 
 interface Product {
     id: string
@@ -21,12 +24,26 @@ interface CartItem {
     quantity: number
 }
 
+interface LastTransaction {
+    id: string
+    date: Date
+    cashier: string
+    items: { productName: string; quantity: number; price: number; subtotal: number }[]
+    total: number
+    paid: number
+    change: number
+    paymentMethod: PaymentMethodType
+}
+
 export default function CashierPOSPage() {
     const [products, setProducts] = useState<Product[]>([])
     const [cart, setCart] = useState<CartItem[]>([])
     const [search, setSearch] = useState('')
     const [paid, setPaid] = useState('')
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('CASH')
     const [loading, setLoading] = useState(false)
+    const [showReceipt, setShowReceipt] = useState(false)
+    const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
 
     useEffect(() => {
         fetchProducts()
@@ -115,13 +132,35 @@ export default function CashierPOSPage() {
                     total: total,
                     paid: paidAmount,
                     change: change,
+                    paymentMethod: paymentMethod,
                 }),
             })
 
             if (response.ok) {
+                const result = await response.json()
                 toast.success('Transaksi berhasil!')
+
+                // Set receipt data
+                setLastTransaction({
+                    id: result.transactionNo || `TRX-${Date.now()}`,
+                    date: new Date(),
+                    cashier: 'Kasir',
+                    items: cart.map(item => ({
+                        productName: item.product.name,
+                        quantity: item.quantity,
+                        price: Number(item.product.price),
+                        subtotal: Number(item.product.price) * item.quantity,
+                    })),
+                    total,
+                    paid: paidAmount,
+                    change,
+                    paymentMethod,
+                })
+                setShowReceipt(true)
+
                 setCart([])
                 setPaid('')
+                setPaymentMethod('CASH')
                 fetchProducts()
             } else {
                 const error = await response.json()
@@ -245,6 +284,20 @@ export default function CashierPOSPage() {
                             </div>
 
                             <div className="space-y-2">
+                                <label className="text-sm font-medium">Metode Pembayaran:</label>
+                                <select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
+                                    className="w-full p-2 border border-border rounded-lg bg-background text-foreground"
+                                >
+                                    <option value="CASH">💵 Tunai / Cash</option>
+                                    <option value="DEBIT_CARD">💳 Kartu Debit</option>
+                                    <option value="CREDIT_CARD">💳 Kartu Kredit</option>
+                                    <option value="E_WALLET">📱 E-Wallet (GoPay/OVO/Dana)</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
                                 <label className="text-sm font-medium">Dibayar:</label>
                                 <Input
                                     type="number"
@@ -280,6 +333,40 @@ export default function CashierPOSPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Receipt Modal */}
+            {showReceipt && lastTransaction && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 no-print">
+                    <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
+                        <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-background">
+                            <h3 className="font-bold text-lg">Struk Transaksi</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setShowReceipt(false)}>
+                                <Icons.Close className="w-5 h-5" />
+                            </Button>
+                        </div>
+                        <div className="p-4 flex justify-center">
+                            <ThermalReceipt
+                                receiptId={lastTransaction.id}
+                                date={lastTransaction.date}
+                                cashierName={lastTransaction.cashier}
+                                items={lastTransaction.items}
+                                total={lastTransaction.total}
+                                paid={lastTransaction.paid}
+                                change={lastTransaction.change}
+                                paymentMethod={lastTransaction.paymentMethod}
+                            />
+                        </div>
+                        <div className="p-4 border-t flex gap-2 sticky bottom-0 bg-background">
+                            <Button onClick={() => window.print()} className="flex-1 gap-2">
+                                🖨️ Print Struk
+                            </Button>
+                            <Button onClick={() => setShowReceipt(false)} variant="outline" className="flex-1">
+                                Tutup
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
