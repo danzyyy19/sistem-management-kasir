@@ -38,56 +38,54 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Start a transaction
-        const result = await prisma.$transaction(async (tx: any) => {
-            // Create transaction with unique transaction number
-            const transaction = await tx.transaction.create({
-                data: {
-                    transactionNo: generateTransactionNo(),
-                    userId: payload.userId,
-                    total: Number(total),
-                    paid: Number(paid),
-                    change: Number(change),
-                    paymentMethod: paymentMethod,
-                }
-            })
-
-            // Create transaction items and update stock
-            for (const item of items) {
-                await tx.transactionItem.create({
-                    data: {
-                        transactionId: transaction.id,
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        price: Number(item.price),
-                        subtotal: Number(item.subtotal),
-                    }
-                })
-
-                // Update product stock
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity
-                        }
-                    }
-                })
+        // Create transaction first
+        const transaction = await prisma.transaction.create({
+            data: {
+                transactionNo: generateTransactionNo(),
+                userId: payload.userId,
+                total: Number(total),
+                paid: Number(paid),
+                change: Number(change),
+                paymentMethod: paymentMethod,
             }
+        })
 
-            // Get full transaction with items
-            const fullTransaction = await tx.transaction.findUnique({
-                where: { id: transaction.id },
-                include: {
-                    items: {
-                        include: {
-                            product: true
-                        }
+        // Prepare transaction items data
+        const transactionItemsData = items.map((item: { productId: string; quantity: number; price: number; subtotal: number }) => ({
+            transactionId: transaction.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            price: Number(item.price),
+            subtotal: Number(item.subtotal),
+        }))
+
+        // Batch create transaction items
+        await prisma.transactionItem.createMany({
+            data: transactionItemsData
+        })
+
+        // Update stock for each product
+        for (const item of items) {
+            await prisma.product.update({
+                where: { id: item.productId },
+                data: {
+                    stock: {
+                        decrement: item.quantity
                     }
                 }
             })
+        }
 
-            return fullTransaction
+        // Get full transaction with items
+        const result = await prisma.transaction.findUnique({
+            where: { id: transaction.id },
+            include: {
+                items: {
+                    include: {
+                        product: true
+                    }
+                }
+            }
         })
 
         return NextResponse.json(result)
